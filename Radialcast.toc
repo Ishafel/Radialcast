@@ -1,4 +1,4 @@
-## Interface: 110200
+## Interface: 120100
 ## Title: RadialCast
 ## Notes: Middle-mouse radial spell wheel
 ## Author: JoeBiden
@@ -6,4 +6,4 @@
 ## SavedVariables: RadialCastDB
 ## SavedVariablesPerCharacter: RadialCastCharDB
 
-RadialCast.lua
+Radialcast.lua
