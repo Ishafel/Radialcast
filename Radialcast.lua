@@ -7,7 +7,10 @@
 -- /rcast reset = clear all rings (asks to confirm).
 -- /rcast disable [base,shift,ctrl] / enable [...] / status
 
-local ADDON = ...
+local ADDON, ns = ...
+local L = ns.L
+local BODY_FONT = STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
+local DISPLAY_FONT = GetLocale() == "ruRU" and BODY_FONT or "Fonts\\MORPHEUS.TTF"
 local MEDIA = "Interface\\AddOns\\" .. ADDON .. "\\media\\"
 
 ------------------------------------------------------------
@@ -35,7 +38,7 @@ local DEFAULTS = {
 -- Rings, in tab order. Ctrl wins if both modifiers are held.
 -- color = ring indicator text; tint = multiplier on the cyan wedge art.
 local RINGS = {
-    { key = "base",  label = "Base",  color = { 0.43, 0.84, 0.94 }, tint = { 1, 1,    1    } },
+    { key = "base",  label = L["Base"],  color = { 0.43, 0.84, 0.94 }, tint = { 1, 1,    1    } },
     { key = "shift", label = "Shift", color = { 0.78, 0.58, 1.00 }, tint = { 1, 0.65, 1    } },
     { key = "ctrl",  label = "Ctrl",  color = { 0.55, 1.00, 0.40 }, tint = { 1, 1,    0.43 } },
 }
@@ -46,10 +49,10 @@ for _, r in ipairs(RINGS) do RING_BY_KEY[r.key] = r end
 -- Named by physical position: on most mice Button4 is the back thumb
 -- button and Button5 is forward (mouse software can remap these).
 local CAST_BUTTONS = {
-    { key = "LeftButton",  short = "Left",    verb = "left-click",                    tip = "Left mouse button" },
-    { key = "RightButton", short = "Right",   verb = "right-click",                   tip = "Right mouse button" },
-    { key = "Button4",     short = "Back",    verb = "press your back thumb button",  tip = "Back thumb button (mouse button 4)" },
-    { key = "Button5",     short = "Forward", verb = "press your forward thumb button", tip = "Forward thumb button (mouse button 5)" },
+    { key = "LeftButton",  short = L["Left"],    verb = L["left-click"],                    tip = L["Left mouse button"] },
+    { key = "RightButton", short = L["Right"],   verb = L["right-click"],                   tip = L["Right mouse button"] },
+    { key = "Button4",     short = L["Back"],    verb = L["press your back thumb button"],  tip = L["Back thumb button (mouse button 4)"] },
+    { key = "Button5",     short = L["Forward"], verb = L["press your forward thumb button"], tip = L["Forward thumb button (mouse button 5)"] },
 }
 local ALL_MOUSE = { "LeftButton", "RightButton", "MiddleButton", "Button4", "Button5" }
 
@@ -149,8 +152,8 @@ local function SlotCD(s)
 end
 
 local function FormatCD(left)
-    if left >= 3600 then return ("%dh"):format(math.ceil(left / 3600)), 1, 1, 1 end
-    if left >= 60   then return ("%dm"):format(math.ceil(left / 60)), 1, 1, 1 end
+    if left >= 3600 then return (L["%dh"]):format(math.ceil(left / 3600)), 1, 1, 1 end
+    if left >= 60   then return (L["%dm"]):format(math.ceil(left / 60)), 1, 1, 1 end
     if left >= 3    then return ("%d"):format(math.ceil(left)), 1, 1, 1 end
     return ("%.1f"):format(left), 1, 0.25, 0.25
 end
@@ -256,9 +259,9 @@ local function Text(font, size, r, g, b, y)
     fs:SetWordWrap(true)
     return fs
 end
-local title    = Text("Fonts\\MORPHEUS.TTF", 18, 0.90, 0.85, 0.75, 26 * K)
-local category = Text("Fonts\\FRIZQT__.TTF", 12, 0.72, 0.50, 1.00, 8 * K)
-local label    = Text("Fonts\\MORPHEUS.TTF", 16, 1, 1, 1, -24 * K)
+local title    = Text(DISPLAY_FONT, 18, 0.90, 0.85, 0.75, 26 * K)
+local category = Text(BODY_FONT, 12, 0.72, 0.50, 1.00, 8 * K)
+local label    = Text(DISPLAY_FONT, 16, 1, 1, 1, -24 * K)
 
 -- Ring indicator: a single disabled tab-style button in the hub,
 -- under the spell name, showing which ring is active.
@@ -284,7 +287,7 @@ hint:SetWordWrap(true)
 local complete = CreateFrame("Button", nil, wheel, "UIPanelButtonTemplate")
 complete:SetSize(140, 26)
 complete:SetPoint("TOP", hint, "BOTTOM", 0, -8)
-complete:SetText("COMPLETE")
+complete:SetText(L["COMPLETE"])
 complete:Hide()
 
 -- Ring tabs above the wheel (edit mode only)
@@ -313,7 +316,7 @@ offShade:SetAllPoints()
 offShade:SetTexture(MEDIA .. "wheel")
 offShade:SetVertexColor(0, 0, 0, 0.75)
 local offText = offOverlay:CreateFontString(nil, "OVERLAY")
-if not offText:SetFont("Fonts\\MORPHEUS.TTF", 18, "") then offText:SetFontObject(GameFontNormalLarge) end
+if not offText:SetFont(DISPLAY_FONT, 18, "") then offText:SetFontObject(GameFontNormalLarge) end
 offText:SetTextColor(0.90, 0.85, 0.75)
 offText:SetPoint("CENTER", 0, 22)
 local offBtn = CreateFrame("Button", nil, offOverlay, "UIPanelButtonTemplate")
@@ -331,11 +334,11 @@ local function UpdateOffOverlay()
     if off then
         offOverlay:SetFrameLevel(wheel:GetFrameLevel() + 20)  -- above the slot hit areas
         if db.disabled then
-            offText:SetText("RadialCast is disabled")
-            offBtn:SetText("Enable RadialCast")
+            offText:SetText(L["RadialCast is disabled"])
+            offBtn:SetText(L["Enable RadialCast"])
         else
-            offText:SetText(RING_BY_KEY[activeRing].label .. " ring is off")
-            offBtn:SetText("Enable")
+            offText:SetText((L["Ring %s is off"]):format(RING_BY_KEY[activeRing].label))
+            offBtn:SetText(L["Enable"])
         end
         offOverlay:Show()
     else
@@ -390,12 +393,12 @@ local function SetSelected(i)
     local s = db and Slots()[i]
     if s then
         label:SetText(s.name or "?")
-        category:SetText(s.type:upper())
+        category:SetText(L[s.type:upper()])
         local c = TYPE_COLORS[s.type] or TYPE_COLORS.spell
         category:SetTextColor(c[1], c[2], c[3])
     else
-        label:SetText("Empty")
-        category:SetText(editing and "" or "/rcast to customize")
+        label:SetText(L["Empty"])
+        category:SetText(editing and "" or L["/rcast to customize"])
         category:SetTextColor(0.80, 0.70, 0.50)
     end
 end
@@ -466,7 +469,7 @@ end
 ------------------------------------------------------------
 local function OpenSpellbook()
     if InCombatLockdown() then
-        print("|cff6fd6f0RadialCast|r: can't open the spellbook in combat")
+        print("|cff6fd6f0RadialCast|r: " .. L["can't open the spellbook in combat"])
         return
     end
     if PlayerSpellsUtil and PlayerSpellsUtil.OpenToSpellBookTab then
@@ -528,7 +531,7 @@ for i = 1, N do
     over:SetAllPoints(t)
     over:SetFrameLevel(cd:GetFrameLevel() + 2)
     local cdText = over:CreateFontString(nil, "OVERLAY")
-    if not cdText:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE") then
+    if not cdText:SetFont(BODY_FONT, 16, "OUTLINE") then
         cdText:SetFontObject(NumberFontNormalLarge or GameFontHighlightLarge)
     end
     cdText:SetPoint("CENTER")
@@ -573,12 +576,12 @@ for i = 1, N do
         end
         if s then
             GameTooltip:AddLine(" ")
-            GameTooltip:AddLine("Click to open your spellbook", 0.7, 0.7, 0.7)
-            GameTooltip:AddLine("Drag to pick up  ·  Right-click to clear", 0.7, 0.7, 0.7)
+            GameTooltip:AddLine(L["Click to open your spellbook"], 0.7, 0.7, 0.7)
+            GameTooltip:AddLine(L["Drag to pick up  ·  Right-click to clear"], 0.7, 0.7, 0.7)
         else
-            GameTooltip:SetText("Empty slot")
-            GameTooltip:AddLine("Click to open your spellbook", 1, 1, 1)
-            GameTooltip:AddLine("Drag a spell, item, or macro here", 1, 1, 1)
+            GameTooltip:SetText(L["Empty slot"])
+            GameTooltip:AddLine(L["Click to open your spellbook"], 1, 1, 1)
+            GameTooltip:AddLine(L["Drag a spell, item, or macro here"], 1, 1, 1)
         end
         GameTooltip:Show()
     end)
@@ -651,13 +654,13 @@ local function SetEditing(on)
     else
         wheel:EnableKeyboard(false)
     end
-    title:SetText(on and "Customize" or "Quick Spell")
+    title:SetText(on and L["Customize"] or L["Quick Spell"])
     if on and embedded then
-        hint:SetText("Drag spells, items, or macros onto a slot  ·  Click a slot to open your spellbook  ·  Right-click clears")
+        hint:SetText(L["Drag spells, items, or macros onto a slot  ·  Click a slot to open your spellbook  ·  Right-click clears"])
     elseif on then
-        hint:SetText("Drag spells, items, or macros onto a slot  ·  Right-click clears  ·  Drag center to move")
+        hint:SetText(L["Drag spells, items, or macros onto a slot  ·  Right-click clears  ·  Drag center to move"])
     else
-        hint:SetText("Move mouse to select  ·  Shift / Ctrl swap rings  ·  Release to confirm")
+        hint:SetText(L["Move mouse to select  ·  Shift / Ctrl swap rings  ·  Release to confirm"])
     end
     Refresh()
 end
@@ -678,7 +681,7 @@ end
 
 complete:SetScript("OnClick", function()
     wheel:Hide()
-    print("|cff6fd6f0RadialCast|r: wheel saved")
+    print("|cff6fd6f0RadialCast|r: " .. L["wheel saved"])
     if AfterEdit then AfterEdit() end
 end)
 
@@ -737,7 +740,7 @@ function Open()
     if InCombatLockdown() and not applied.combat then
         if not combatOffNotified then
             combatOffNotified = true
-            print("|cff6fd6f0RadialCast|r: combat casting is off. Turn it on in /rcast (BETA).")
+            print("|cff6fd6f0RadialCast|r: " .. L["combat casting is off. Turn it on in /rcast (BETA)."])
         end
         return
     end
@@ -750,11 +753,11 @@ function Open()
         wheel:SetPoint("CENTER", UIParent, "CENTER", applied.x / curScale, applied.y / curScale)
         originX = UIParent:GetWidth() / 2 + applied.x
         originY = UIParent:GetHeight() / 2 + applied.y
-        local verb = "left-click"
+        local verb = L["left-click"]
         for _, b in ipairs(CAST_BUTTONS) do if b.key == applied.button then verb = b.verb end end
-        hint:SetText("Hover a spell and " .. verb .. " to cast  ·  Shift / Ctrl swap rings")
+        hint:SetText((L["Hover a spell and %s to cast  ·  Shift / Ctrl swap rings"]):format(verb))
     else
-        hint:SetText("Move mouse to select  ·  Shift / Ctrl swap rings  ·  Release to confirm")
+        hint:SetText(L["Move mouse to select  ·  Shift / Ctrl swap rings  ·  Release to confirm"])
         curScale = S("scale")
         wheel:SetScale(curScale)
         local w, h = UIParent:GetWidth(), UIParent:GetHeight()
@@ -795,7 +798,7 @@ function Close()
     wheel:Hide()
     if S("debug") then
         local s = selected and Slots()[selected]
-        print("|cff6fd6f0RadialCast|r: " .. (s and s.name or "cancelled"))
+        print("|cff6fd6f0RadialCast|r: " .. (s and s.name or L["cancelled"]))
     end
 end
 
@@ -1018,7 +1021,7 @@ ev:SetScript("OnEvent", function(_, event, arg)
             if acct and not acct.migrated and (acct.rings or acct.slots) then
                 RadialCastCharDB.rings = acct.rings
                 RadialCastCharDB.slots = acct.slots
-                print("|cff6fd6f0RadialCast|r: moved your existing layout to this character")
+                print("|cff6fd6f0RadialCast|r: " .. L["moved your existing layout to this character"])
             end
             RadialCastDB = { migrated = true }
         end
@@ -1043,7 +1046,7 @@ ev:SetScript("OnEvent", function(_, event, arg)
     elseif event == "PLAYER_LOGIN" then
         ApplyActivation()
         if db.disabled then
-            print("|cff6fd6f0RadialCast|r: disabled (/rcast enable to turn it back on)")
+            print("|cff6fd6f0RadialCast|r: " .. L["disabled (/rcast enable to turn it back on)"])
         end
         SetEditing(false)
         local any = false
@@ -1051,7 +1054,7 @@ ev:SetScript("OnEvent", function(_, event, arg)
             for i = 1, N do if db.rings[r.key][i] then any = true end end
         end
         if not any then
-            print("|cff6fd6f0RadialCast|r: type /rcast to set up your wheel")
+            print("|cff6fd6f0RadialCast|r: " .. L["type /rcast to set up your wheel"])
         end
     end
 end)
@@ -1092,7 +1095,7 @@ local function BetaChip(parent, anchor)
     bg:SetColorTexture(0.85, 0.45, 0.10, 0.9)
     local t = chip:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     t:SetPoint("CENTER", 0, 0)
-    t:SetText("BETA")
+    t:SetText(L["BETA"])
     return chip
 end
 
@@ -1163,12 +1166,12 @@ local function Slider(parent, label, y, minV, maxV, step, fmt, get, set)
 end
 
 local function Pct(v) return ("%d%%"):format(math.floor(v * 100 + 0.5)) end
-local function Px(v) return ("%+d px"):format(v) end
+local function Px(v) return (L["%+d px"]):format(v) end
 
 StaticPopupDialogs["RADIALCAST_CLEAR"] = {
-    text = "Clear every slot in the Base, Shift, and Ctrl rings for this character?\n\nThis can't be undone.",
-    button1 = "Clear all",
-    button2 = CANCEL or "Cancel",
+    text = L["Clear every slot in the Base, Shift, and Ctrl rings for this character?\n\nThis can't be undone."],
+    button1 = L["Clear all"],
+    button2 = CANCEL or L["Cancel"],
     OnShow = function(self)
         self:SetFrameStrata("FULLSCREEN_DIALOG")   -- never hidden behind the settings window
     end,
@@ -1176,7 +1179,7 @@ StaticPopupDialogs["RADIALCAST_CLEAR"] = {
         ResetRings()
         Refresh()
         SyncCombatButtons()
-        print("|cff6fd6f0RadialCast|r: all rings cleared")
+        print("|cff6fd6f0RadialCast|r: " .. L["all rings cleared"])
     end,
     timeout = 0,
     whileDead = true,
@@ -1186,8 +1189,8 @@ StaticPopupDialogs["RADIALCAST_CLEAR"] = {
 }
 
 local function CombatNote()
-    return InCombatLockdown() and "|cffff8080In combat: size and combat settings apply when combat ends.|r"
-        or "Size and combat settings apply out of combat."
+    return InCombatLockdown() and L["|cffff8080In combat: size and combat settings apply when combat ends.|r"]
+        or L["Size and combat settings apply out of combat."]
 end
 
 -- Move the live editor into the window's right column, and back out.
@@ -1263,13 +1266,13 @@ local function CreatePanel()
     divider:SetColorTexture(0.8, 0.7, 0.5, 0.25)
 
     ---------------- left column: settings ----------------
-    Section(left, "General", -10)
-    Checkbox(left, "Enable RadialCast", 18, -38,
+    Section(left, L["General"], -10)
+    Checkbox(left, L["Enable RadialCast"], 18, -38,
         function() return not db.disabled end,
         function(v) db.disabled = not v; ApplyActivation() end)
     local ringBoxes = {}
-    local ringText = { base = "Base ring  (middle mouse)", shift = "Shift ring  (Shift + middle)",
-                       ctrl = "Ctrl ring  (Ctrl + middle)" }
+    local ringText = { base = L["Base ring  (middle mouse)"], shift = L["Shift ring  (Shift + middle)"],
+                       ctrl = L["Ctrl ring  (Ctrl + middle)"] }
     for idx, r in ipairs(RINGS) do
         local key = r.key
         ringBoxes[#ringBoxes + 1] = Checkbox(left, ringText[key], 40, -38 - idx * 26,
@@ -1281,41 +1284,38 @@ local function CreatePanel()
             end)
     end
 
-    Section(left, "Wheel", -160)
-    Checkbox(left, "Open at cursor  (off = screen center)", 18, -188,
+    Section(left, L["Wheel"], -160)
+    Checkbox(left, L["Open at cursor  (off = screen center)"], 18, -188,
         function() return S("cursor") end,
         function(v) SetSetting("cursor", v) end)
-    Slider(left, "Size", -224, 0.6, 1.4, 0.05, Pct,
+    Slider(left, L["Size"], -224, 0.6, 1.4, 0.05, Pct,
         function() return S("scale") end,
         function(v) SetSetting("scale", v); RequestCombatLayout() end)
-    Slider(left, "Edge padding", -270, 0, 0.30, 0.01, Pct,
+    Slider(left, L["Edge padding"], -270, 0, 0.30, 0.01, Pct,
         function() return S("padding") end,
         function(v) SetSetting("padding", v) end)
-    Slider(left, "Background dim", -316, 0, 0.6, 0.05, Pct,
+    Slider(left, L["Background dim"], -316, 0, 0.6, 0.05, Pct,
         function() return S("dim") end,
         function(v) SetSetting("dim", v) end)
 
-    local combatHeader = Section(left, "Combat", -366)
+    local combatHeader = Section(left, L["Combat"], -366)
     BetaChip(left, combatHeader)
-    local combatBox = Checkbox(left, "Enable combat casting", 18, -394,
+    local combatBox = Checkbox(left, L["Enable combat casting"], 18, -394,
         function() return S("combatCast") end,
         function(v) SetSetting("combatCast", v); ApplyActivation() end)
     combatBox:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText("Combat casting (BETA)")
-        GameTooltip:AddLine("In combat, hold middle mouse, hover a slot, and click it with your chosen "
-            .. "mouse button to cast.", 1, 1, 1, true)
+        GameTooltip:SetText(L["Combat casting (BETA)"])
+        GameTooltip:AddLine(L["In combat, hold middle mouse, hover a slot, and click it with your chosen mouse button to cast."], 1, 1, 1, true)
         GameTooltip:AddLine(" ")
-        GameTooltip:AddLine("The wheel's slots stay clickable (invisibly) at the combat position for the "
-            .. "whole fight, so that button casts a slot even while the wheel is closed. Other mouse "
-            .. "buttons always pass through to the game.", 1, 0.82, 0.3, true)
+        GameTooltip:AddLine(L["The wheel's slots stay clickable (invisibly) at the combat position for the whole fight, so that button casts a slot even while the wheel is closed. Other mouse buttons always pass through to the game."], 1, 0.82, 0.3, true)
         GameTooltip:Show()
     end)
     combatBox:SetScript("OnLeave", function() GameTooltip:Hide() end)
     -- "Cast with" button row
     local castLabel = left:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     castLabel:SetPoint("TOPLEFT", 22, -430)
-    castLabel:SetText("Cast with")
+    castLabel:SetText(L["Cast with"])
     local castRow = { buttons = {} }
     local bw = math.floor((LEFT_W - 44 - 3 * 4) / 4)
     for idx, info in ipairs(CAST_BUTTONS) do
@@ -1351,10 +1351,10 @@ local function CreatePanel()
 
     local combatSliders = {
         castRow,
-        Slider(left, "Combat wheel horizontal", -490, -600, 600, 10, Px,
+        Slider(left, L["Combat wheel horizontal"], -490, -600, 600, 10, Px,
             function() return S("combatX") end,
             function(v) SetSetting("combatX", v); RequestCombatLayout() end),
-        Slider(left, "Combat wheel vertical", -536, -400, 400, 10, Px,
+        Slider(left, L["Combat wheel vertical"], -536, -400, 400, 10, Px,
             function() return S("combatY") end,
             function(v) SetSetting("combatY", v); RequestCombatLayout() end),
     }
@@ -1367,19 +1367,19 @@ local function CreatePanel()
     local clear = CreateFrame("Button", nil, left, "UIPanelButtonTemplate")
     clear:SetSize(LEFT_W - 44, 26)
     clear:SetPoint("BOTTOMLEFT", 22, 14)
-    clear:SetText("Clear all rings")
+    clear:SetText(L["Clear all rings"])
     clear:SetScript("OnClick", function() StaticPopup_Show("RADIALCAST_CLEAR") end)
 
     ---------------- right column: live ring editor ----------------
     local save = CreateFrame("Button", nil, right, "UIPanelButtonTemplate")
     save:SetSize(120, 26)
     save:SetPoint("BOTTOMRIGHT", -16, 14)
-    save:SetText("Save")
+    save:SetText(L["Save"])
     save:SetScript("OnClick", function() f:Hide() end)   -- OnHide confirms in chat
 
     local layoutTitle = right:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     layoutTitle:SetPoint("TOPLEFT", 18, -10)
-    layoutTitle:SetText("Layout")
+    layoutTitle:SetText(L["Layout"])
 
     function f:Sync()
         for _, c in ipairs(controls) do c:Sync() end
@@ -1399,7 +1399,7 @@ local function CreatePanel()
     end)
     f:SetScript("OnHide", function()
         ReleaseEditor()
-        print("|cff6fd6f0RadialCast|r: settings saved")
+        print("|cff6fd6f0RadialCast|r: " .. L["settings saved"])
     end)
     f:RegisterEvent("PLAYER_REGEN_ENABLED")
     f:RegisterEvent("PLAYER_REGEN_DISABLED")
@@ -1421,10 +1421,10 @@ SyncSettings = function()
 end
 
 local function Status()
-    if db.disabled then return "disabled" end
+    if db.disabled then return L["disabled"] end
     local parts = {}
     for _, r in ipairs(RINGS) do
-        parts[#parts + 1] = r.label .. (RingEnabled(r.key) and " on" or " off")
+        parts[#parts + 1] = r.label .. (RingEnabled(r.key) and L[" on"] or L[" off"])
     end
     return table.concat(parts, ", ")
 end
@@ -1448,8 +1448,7 @@ SlashCmdList.RADIALCAST = function(msg)
                 if RING_BY_KEY[word] then list[#list + 1] = word else bad[#bad + 1] = word end
             end
             if #bad > 0 then
-                print("|cff6fd6f0RadialCast|r: unknown ring '" .. table.concat(bad, ", ")
-                      .. "' (use base, shift, ctrl)")
+                print("|cff6fd6f0RadialCast|r: " .. (L["unknown ring '%s' (use base, shift, ctrl)"]):format(table.concat(bad, ", ")))
                 return
             end
             for _, k in ipairs(list) do db.ringOff[k] = off or nil end
@@ -1459,7 +1458,7 @@ SlashCmdList.RADIALCAST = function(msg)
         if editing then ShowRing(activeRing) end   -- refresh "(off)" tab labels
         if panel and panel:IsShown() then panel:Sync() end
         print("|cff6fd6f0RadialCast|r: " .. Status()
-              .. (ok and "" or " (applies when combat ends)"))
+              .. (ok and "" or L[" (applies when combat ends)"]))
 
     elseif cmd == "status" then
         print("|cff6fd6f0RadialCast|r: " .. Status())

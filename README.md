@@ -10,6 +10,10 @@ A radial spell wheel on middle mouse. Hold it, flick toward a spell, release to 
 - **Per-character layouts** that persist across reloads.
 - **Combat casting (beta):** hover a slot and click with your choice of left, right, back, or forward mouse button.
 
+## Language
+
+Russian WoW clients (`ruRU`) automatically use Russian interface text and messages. Other clients use English. Commands such as `/rcast`, `enable`, `disable`, and ring names (`base`, `shift`, `ctrl`) stay the same.
+
 ## Setup
 
 1. Drop the `RadialCast` folder into `Interface/AddOns`.
