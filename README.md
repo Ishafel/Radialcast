@@ -43,3 +43,44 @@ Ring names: `base`, `shift`, `ctrl`.
 - Combat casting can be turned off in `/rcast`.
 
 Combat casting is still in beta, so let me know if you run into anything.
+
+## Code structure
+
+WoW loads the Lua files in the order listed in `Radialcast.toc`. Modules share the
+addon's private namespace (the second `...` argument); no module loader or runtime
+dependency is required.
+
+| File | Responsibility |
+|---|---|
+| `Localization.lua` | Russian text and English fallback |
+| `Config.lua` | Defaults, ring metadata, geometry, and fonts |
+| `GameAPI.lua` | Spell, item, macro, and cooldown API compatibility helpers |
+| `Database.lua` | Saved variables, migration, settings, and ring availability |
+| `UI/Widgets.lua` | Reusable settings controls |
+| `UI/WheelView.lua` | Wheel frames, slot rendering, cooldowns, and drag/drop |
+| `Wheel.lua` | Transient selection state, mouse input, opening/closing, and editor placement |
+| `Combat.lua` | Secure buttons, mouse bindings, and deferred combat updates |
+| `Settings.lua` | Settings window and reset confirmation |
+| `Commands.lua` | `/rcast` and `/radialcast` commands |
+| `Radialcast.lua` | Module initialization and game lifecycle events |
+
+The entry point initializes the view, wheel controller, combat controls, and settings
+after all modules have loaded. Cross-module UI callbacks run after initialization.
+`Database.data` owns persistent data, `Wheel` owns transient selection state, and
+`Combat.applied` records the combat layout actually applied to secure buttons.
+Combat changes stay deferred until `PLAYER_REGEN_ENABLED`; this split does not
+change casting behavior.
+
+## Development checks
+
+From the repository root, with Lua 5.1 installed:
+
+```sh
+lua tests/smoke.lua
+```
+
+The tests use a small WoW API double and cover both locales, saved-data migration,
+the editor, ring activation, release-to-cast outside combat, combat clicks, reset,
+and deferred settings updates. The double rejects protected attribute/layout
+changes during simulated combat. It does not emulate WoW's secure execution,
+hit testing, or rendering; those still need validation in the game client.
